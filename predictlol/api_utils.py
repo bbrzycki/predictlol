@@ -44,12 +44,79 @@ def get_ranking_data(summoner_id, api_key, region='na1'):
 
 def get_league_data(summoner_id, queue_type, api_key, region='na1'):
     all_league_data = get_ranking_data(summoner_id, api_key, region)
-    return [elt for elt in all_league_data if elt['queueType'] == queue_type][0]
+    try:
+        league_data = [elt for elt in all_league_data if elt['queueType'] == queue_type][0]
+    except IndexError:
+        league_data = None
+    return league_data
 
 def get_league_stats(summoner_id, queue_type, api_key, region='na1'):
     league = get_league_data(summoner_id, queue_type, api_key, region)
+    if league is None:
+        raise Exception('No ranked data available!')
     return league['wins'], league['losses'], league['tier'], league['rank']
 
 def get_winrate(summoner_id, queue_type, api_key, region='na1'):
-    wins, losses = get_league_stats(summoner_id, queue_type, api_key, region)[0:2]
-    return wins / (wins + losses)
+    try:
+        wins, losses = get_league_stats(summoner_id, queue_type, api_key, region)[0:2]
+        return wins / (wins + losses)
+    except Exception as e:
+        return None
+
+def get_match_result(match_data):
+    return match_data['teams'][0]['win'] == 'Win'
+
+def get_match_winrates(match_data, live, api_key, region='na1'):
+    # Takes match_data as json
+
+    if live:
+        participants = match_data['participants']
+        queue_id = match_data['gameQueueConfigId']
+    else:
+        participants = match_data['participantIdentities']
+        queue_id = match_data['queueId']
+
+    num_players = len(participants)/2
+    queue_type = queue_name(queue_id)
+
+    team1 = []
+    team2 = []
+
+    for i, participant in enumerate(participants):
+
+        if live:
+            summoner_name = participant['summonerName']
+            summoner_id = participant['summonerId']
+        else:
+            summoner_name = participant['player']['summonerName']
+            summoner_id = participant['player']['summonerId']
+
+        # Get league stats *for the same queue type*
+        try:
+            wins, losses, tier, rank = get_league_stats(summoner_id, queue_type, api_key, region)
+            winrate = wins / (wins + losses)
+
+            summoner_info = {'summoner_name': summoner_name,
+                             'summoner_id': summoner_id,
+                             'wins': wins,
+                             'losses': losses,
+                             'winrate': winrate,
+                             'tier': tier,
+                             'rank': rank}
+
+            # if match_data['teams'][0]['teamId'] == match_data['participants'][i]['teamId']:
+            if i < num_players:
+                team1.append(summoner_info)
+            else:
+                team2.append(summoner_info)
+        except Exception:
+            # If summoner has no queue data, ignore them for now
+            # summoner_info = {'summoner_name': summoner_name,
+            #                  'summoner_id': summoner_id,
+            #                  'wins': wins,
+            #                  'losses': losses,
+            #                  'winrate': winrate,
+            #                  'tier': tier,
+            #                  'rank': rank}
+            pass
+    return {'team1': team1, 'team2': team2, 'queue_type': queue_type}
