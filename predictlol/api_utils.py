@@ -16,12 +16,14 @@ def get_all_match_data(account_id, api_key, region='na1'):
     response = requests.get("https://%s.api.riotgames.com/lol/match/v3/matchlists/by-account/%s?api_key=%s" % (region, account_id, api_key))
     return response.json()
 
-def get_match_by_id(account_id, match_index, api_key, region='na1'):
-    all_match_data = get_all_match_data(account_id, api_key, region)
-    match_id = all_match_data['matches'][match_index]['gameId']
-
+def get_match_by_id(match_id, api_key, region='na1'):
     response = requests.get("https://%s.api.riotgames.com/lol/match/v3/matches/%s?api_key=%s" % (region, match_id, api_key))
     return response.json()
+
+def get_match_by_index(account_id, match_index, api_key, region='na1'):
+    all_match_data = get_all_match_data(account_id, api_key, region)
+    match_id = all_match_data['matches'][match_index]['gameId']
+    return get_match_by_id(match_id, api_key, region)
 
 def get_current_match(summoner_id, api_key, region='na1'):
     response = requests.get("https://%s.api.riotgames.com/lol/spectator/v3/active-games/by-summoner/%s?api_key=%s" % (region, summoner_id, api_key))
