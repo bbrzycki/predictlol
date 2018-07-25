@@ -27,8 +27,10 @@ def main(username, region='na1', match_index=0, live=False):
 
     match_winrates = pl.get_match_winrates(match_data, live, api_key, region)
 
-    print('=========================')
-    print('Queue type: %s' % match_winrates['queue_type'])
+    queue_type = match_winrates['queue_type']
+    print()
+    print('Queue type: %s' % queue_type)
+    print('------------%s' % ('-' * len(queue_type)))
     print()
     # print('----')
 
@@ -41,9 +43,10 @@ def main(username, region='na1', match_index=0, live=False):
             first_col = 'Team 1'
         else:
             first_col = ''
-        print('{0:8}  {1:<16}  {2:^9}  {3:8}  {4}'.format(first_col,
+        print('{0:8}  {1:<16}  {2:>4}/{3:<4}  {4:8}  {5}'.format(first_col,
             player['summoner_name'],
-            '%s/%s' % (player['wins'], player['wins'] + player['losses']),
+            '%s' % player['wins'],
+            '%s' % (player['wins'] + player['losses']),
             '(%.02f%%)' % (player['winrate'] * 100),
             '%s %s' % (player['tier'], player['rank'])))
 
@@ -55,14 +58,16 @@ def main(username, region='na1', match_index=0, live=False):
             first_col = 'Team 2'
         else:
             first_col = ''
-        print('{0:8}  {1:<16}  {2:^9}  {3:8}  {4}'.format(first_col,
+        print('{0:8}  {1:<16}  {2:>4}/{3:<4}  {4:8}  {5}'.format(first_col,
             player['summoner_name'],
-            '%s/%s' % (player['wins'], player['wins'] + player['losses']),
+            '%s' % player['wins'],
+            '%s' % (player['wins'] + player['losses']),
             '(%.02f%%)' % (player['winrate'] * 100),
             '%s %s' % (player['tier'], player['rank'])))
     # print('----')
     print()
-    print('Predictions (Team 1 vs Team2):\n')
+    print('Predictions (Team 1 vs Team 2):')
+    print()
     print('    {0:<40}  {1:6}  {2:6}'.format('Statistic', 'Team 1', 'Team 2'))
     print('    {0:<40}  {1:6}  {2:6}'.format('---------', '------', '------'))
 
@@ -101,8 +106,9 @@ def main(username, region='na1', match_index=0, live=False):
             winner = 'Team 1'
         else:
             winner = 'Team 2'
-        print('\nActual result: %s won!' % winner)
-    print('=========================')
+        print()
+        print('Actual result: %s won!' % winner)
+    print('')
     return 0
 
 if __name__ == '__main__':
@@ -117,5 +123,5 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    sys.exit(main(args.username, region=args.region,
+    sys.exit(main(args.username, region=args.region.lower(),
         match_index=args.match_index, live=args.live))
