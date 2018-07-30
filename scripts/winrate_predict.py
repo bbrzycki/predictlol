@@ -23,7 +23,7 @@ def main(username, region='na1', match_index=0, live=False):
         if status_code == 404:
             raise Exception('Summoner not currently in game!')
     else:
-        match_data = pl.get_match_by_id(account_id, match_index, api_key, region)
+        match_data = pl.get_match_by_index(account_id, match_index, api_key, region)
 
     match_winrates = pl.get_match_winrates(match_data, live, api_key, region)
 
