@@ -93,6 +93,7 @@ if __name__ == '__main__':
     for game_id in game_ids:
         time.sleep(2)
         match = pl.get_match_by_id(game_id, api_key)
+        participants = match['participantIdentities']
         for i, participant in enumerate(participants):
             username = participant['player']['summonerName']
             user = pl.get_summoner_ids(username, api_key)
