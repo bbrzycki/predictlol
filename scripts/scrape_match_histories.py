@@ -17,15 +17,14 @@ import os, sys, errno
 
 start = time.time()
 
-def get_all_stats(summoner_name, account_id, api_key, region='na1', queue=420, limit=100):
-    matchlist = []
-    start_index = 0
+def get_all_stats(summoner_name, account_id, api_key, region='na1', queue=420, start_index=0, limit=100):
 
+    time.sleep(2)
     response = requests.get("https://%s.api.riotgames.com/lol/match/v3/matchlists/by-account/%s?queue=%s&beginIndex=%s&endIndex=%s&api_key=%s" % (region, account_id, queue, start_index, start_index + limit, api_key))
-    matchlist_packet = response.json()
+    matchlist = response.json()['matches']
 
     all_stats = []
-    for match in matchlist:
+    for index, match in enumerate(matchlist):
         time.sleep(2)
         match_data = pl.get_match_by_id(match['gameId'], api_key)
         for participant in match_data['participantIdentities']:
@@ -42,7 +41,7 @@ def get_all_stats(summoner_name, account_id, api_key, region='na1', queue=420, l
         h = int(np.floor(delay / 3600.))
         m = int(np.floor((delay - 3600. * h) / 60.))
         s = (delay - 3600. * h - 60. * m)
-        print('Player %s; Game %s: t = %02d:%02d:%2.3f' % (summoner_name, total, h, m, s))
+        print('Player %s; Game %s/%s: t = %02d:%02d:%2.3f' % (summoner_name, index+1, len(matchlist), h, m, s))
     return all_stats
 
 if __name__ == '__main__':
@@ -76,42 +75,69 @@ if __name__ == '__main__':
         with open('../data/delphinus6.json', 'r') as fn:
             all_stats = json.load(fn)
 
+        index = 0
         games = 0
         ranked_solos = []
-        while games < 100:
-            for stats in all_stats:
-                if stats['queue'] == 420:
-                    ranked_solos.append(stats)
-                    games += 1
+        while games < 120:
+            stats = all_stats[index]
+            if stats['queue'] == 420:
+                ranked_solos.append(stats)
+                games += 1
+            index += 1
         with open('../data/420/%s.json' % account_id, 'w') as fn:
             json.dump(ranked_solos, fn)
 
     game_ids = [game['gameId'] for game in ranked_solos]
+    print(len(game_ids), len(ranked_solos))
 
+    print('Have game ids...')
     # Get all users
-    users = []
-    for game_id in game_ids:
-        time.sleep(2)
-        match = pl.get_match_by_id(game_id, api_key)
-        participants = match['participantIdentities']
-        for i, participant in enumerate(participants):
-            username = participant['player']['summonerName']
-            user = pl.get_summoner_ids(username, api_key)
-            users.append(user)
-    users = list(set(users))
-    print('%s total users' % len(users))
+    try:
+        with open('../data/420/users.json', 'r') as fn:
+            users = json.load(fn)
+        print('Player list loaded')
+        print('%s total unique users' % len(users))
+    except Exception as e:
+        # Load from all match data
+        users = []
+        for index, game_id in enumerate(game_ids):
+            now = time.time()
+            delay = (now - start)
+            h = int(np.floor(delay / 3600.))
+            m = int(np.floor((delay - 3600. * h) / 60.))
+            s = (delay - 3600. * h - 60. * m)
+            print('Game %s, %s out of %s, t = %02d:%02d:%2.3f' % (game_id, index+1, len(game_ids), h, m, s))
 
-    for summoner_name, summoner_id, account_id in users:
+            time.sleep(2)
+            match = pl.get_match_by_id(game_id, api_key)
+            participants = match['participantIdentities']
+            for i, participant in enumerate(participants):
+                username = participant['player']['summonerName']
+                try:
+                    time.sleep(2)
+                    user = pl.get_summoner_ids(username, api_key)
+                    users.append(user)
+                except Exception as e:
+                    pass
+        users = list(set(users))
+        with open('../data/420/users.json', 'w') as fn:
+            json.dump(users, fn)
+        print('Player list loaded')
+        print('%s total unique users' % len(users))
+
+    for index, (summoner_name, summoner_id, account_id) in enumerate(users):
+        print('Working on user %s; user %s out of %s' % (summoner_name, index+1, len(users)))
         needs_data = False
         try:
             with open('../data/420/%s.json' % account_id, 'r') as fn:
                 stats = json.load(fn)
-                if len(stats) < 100:
-                    needs_data = True
+                # if len(stats) < 100:
+                #     needs_data = True
+                pass
         except Exception as e:
             needs_data = True
         if needs_data:
-            ranked_stats = get_all_stats(summoner_name, account_id, api_key, queue='420', limit=100)
+            ranked_stats = get_all_stats(summoner_name, account_id, api_key)
             with open('../data/420/%s.json' % account_id, 'w') as fn:
                 json.dump(ranked_stats, fn)
             print('Finished saving %s\'s data (account number %s)' % (summoner_name, account_id))
