@@ -112,6 +112,7 @@ def scrape(queue_id, num_games, account_id, api_key):
                     time.sleep(2)
                     user = pl.get_summoner_ids(username, api_key)
                     users.append(user)
+                    print(i, user[0])
                 except Exception as e:
                     pass
         users = list(set(users))
