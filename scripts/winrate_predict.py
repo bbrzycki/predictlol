@@ -34,8 +34,8 @@ def main(username, region='na1', match_index=0, live=False):
     print()
     # print('----')
 
-    print('{0:8}  {1:<16}  {2:^9}  {3:8}  {4}'.format('', 'Username', 'Record', 'Winrate', 'Rank'))
-    print('{0:8}  {1:<16}  {2:^9}  {3:8}  {4}'.format('', '--------', '------', '-------', '----'))
+    print('{0:8}  {1:<16}  {2:^9}  {3:8}  {4:<12}  {5:5}'.format('', 'Username', 'Record', 'Winrate', 'Rank', 'Streak'))
+    print('{0:8}  {1:<16}  {2:^9}  {3:8}  {4:<12}  {5:5}'.format('', '--------', '------', '-------', '----', '------'))
     # print('Team 1')
     # print('------')
     for i, player in enumerate(match_winrates['team1']):
@@ -43,12 +43,19 @@ def main(username, region='na1', match_index=0, live=False):
             first_col = 'Team 1'
         else:
             first_col = ''
-        print('{0:8}  {1:<16}  {2:>4}/{3:<4}  {4:8}  {5}'.format(first_col,
+
+        if player['streak']:
+            streak_string = '(X)'
+        else:
+            streak_string = ''
+
+        print('{0:8}  {1:<16}  {2:>4}/{3:<4}  {4:8}  {5:<12}  {6:^5}'.format(first_col,
             player['summoner_name'],
             '%s' % player['wins'],
             '%s' % (player['wins'] + player['losses']),
             '(%.02f%%)' % (player['winrate'] * 100),
-            '%s %s' % (player['tier'], player['rank'])))
+            '%s %s' % (player['tier'], player['rank']),
+            '%s' % streak_string))
 
     print()
     # print('Team 2')
@@ -58,12 +65,20 @@ def main(username, region='na1', match_index=0, live=False):
             first_col = 'Team 2'
         else:
             first_col = ''
-        print('{0:8}  {1:<16}  {2:>4}/{3:<4}  {4:8}  {5}'.format(first_col,
+
+        if player['streak']:
+            streak_string = '(X)'
+        else:
+            streak_string = ''
+
+        print('{0:8}  {1:<16}  {2:>4}/{3:<4}  {4:8}  {5:<12}  {6:^5}'.format(first_col,
             player['summoner_name'],
             '%s' % player['wins'],
             '%s' % (player['wins'] + player['losses']),
             '(%.02f%%)' % (player['winrate'] * 100),
-            '%s %s' % (player['tier'], player['rank'])))
+            '%s %s' % (player['tier'], player['rank']),
+            '%s' % streak_string))
+
     # print('----')
     print()
     print('Predictions (Team 1 vs Team 2):')

@@ -56,7 +56,7 @@ def get_league_stats(summoner_id, queue_type, api_key, region='na1'):
     league = get_league_data(summoner_id, queue_type, api_key, region)
     if league is None:
         raise Exception('No ranked data available!')
-    return league['wins'], league['losses'], league['tier'], league['rank']
+    return league['wins'], league['losses'], league['tier'], league['rank'], league['hotStreak']
 
 def get_winrate(summoner_id, queue_type, api_key, region='na1'):
     try:
@@ -95,7 +95,7 @@ def get_match_winrates(match_data, live, api_key, region='na1'):
 
         # Get league stats *for the same queue type*
         try:
-            wins, losses, tier, rank = get_league_stats(summoner_id, queue_type, api_key, region)
+            wins, losses, tier, rank, streak = get_league_stats(summoner_id, queue_type, api_key, region)
             winrate = wins / (wins + losses)
 
             summoner_info = {'summoner_name': summoner_name,
@@ -104,7 +104,8 @@ def get_match_winrates(match_data, live, api_key, region='na1'):
                              'losses': losses,
                              'winrate': winrate,
                              'tier': tier,
-                             'rank': rank}
+                             'rank': rank,
+                             'streak': streak}
 
             # if match_data['teams'][0]['teamId'] == match_data['participants'][i]['teamId']:
             if i < num_players:

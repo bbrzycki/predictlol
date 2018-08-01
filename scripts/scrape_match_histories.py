@@ -20,33 +20,41 @@ start = time.time()
 def get_all_stats(summoner_name, account_id, api_key, region='na1', queue_id=420, start_index=0, limit=100):
 
     time.sleep(2)
-    response = requests.get("https://%s.api.riotgames.com/lol/match/v3/matchlists/by-account/%s?queue=%s&beginIndex=%s&endIndex=%s&api_key=%s" % (region, account_id, queue, start_index, start_index + limit, api_key))
+    response = requests.get("https://%s.api.riotgames.com/lol/match/v3/matchlists/by-account/%s?queue=%s&beginIndex=%s&endIndex=%s&api_key=%s" % (region, account_id, queue_id, start_index, start_index + limit, api_key))
     matchlist = response.json()['matches']
 
     all_stats = []
     for index, match in enumerate(matchlist):
 
-        time.sleep(2)
+        time.sleep(2.5)
         match_data = pl.get_match_by_id(match['gameId'], api_key)
-        for participant in match_data['participantIdentities']:
-            if participant['player']['summonerName'] == summoner_name:
-                participant_id = participant['participantId']
+        try:
+            for participant in match_data['participantIdentities']:
+                if participant['player']['summonerName'] == summoner_name:
+                    participant_id = participant['participantId']
 
-        for key in match.keys():
-            match_data[key] = match[key]
+            for key in match.keys():
+                match_data[key] = match[key]
 
-        stats = match_data['participants'][int(participant_id) - 1]
-        for key in stats.keys():
-            match_data[key] = stats[key]
+            stats = match_data['participants'][int(participant_id) - 1]
+            for key in stats.keys():
+                match_data[key] = stats[key]
 
-        all_stats.append(match_data)
+            all_stats.append(match_data)
 
-        now = time.time()
-        delay = (now - start)
-        h = int(np.floor(delay / 3600.))
-        m = int(np.floor((delay - 3600. * h) / 60.))
-        s = (delay - 3600. * h - 60. * m)
-        print('Player %s; Game %s/%s: t = %02d:%02d:%2.3f' % (summoner_name, index+1, len(matchlist), h, m, s))
+            now = time.time()
+            delay = (now - start)
+            h = int(np.floor(delay / 3600.))
+            m = int(np.floor((delay - 3600. * h) / 60.))
+            s = (delay - 3600. * h - 60. * m)
+            print('Player %s; Game %s/%s: t = %02d:%02d:%2.3f' % (summoner_name, index+1, len(matchlist), h, m, s))
+        except Exception as e:
+            now = time.time()
+            delay = (now - start)
+            h = int(np.floor(delay / 3600.))
+            m = int(np.floor((delay - 3600. * h) / 60.))
+            s = (delay - 3600. * h - 60. * m)
+            print('Player %s; Game %s/%s: t = %02d:%02d:%2.3f -- MATCH NOT FOUND' % (summoner_name, index+1, len(matchlist), h, m, s))
     return all_stats
 
 def scrape(queue_id, num_games, account_id, api_key):
