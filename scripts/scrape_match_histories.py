@@ -1,5 +1,10 @@
 import sys
 import os
+import errno
+import time
+import traceback
+import json
+# from pymongo import MongoClient
 
 import argparse
 import requests
@@ -9,11 +14,6 @@ import numpy as np
 sys.path.append("../")
 import predictlol as pl
 import config
-
-import json
-# from pymongo import MongoClient
-import time
-import os, sys, errno
 
 start = time.time()
 
@@ -47,14 +47,14 @@ def get_all_stats(summoner_name, account_id, api_key, region='na1', queue_id=420
             h = int(np.floor(delay / 3600.))
             m = int(np.floor((delay - 3600. * h) / 60.))
             s = (delay - 3600. * h - 60. * m)
-            print('Player %s; Game %s/%s: t = %02d:%02d:%2.3f' % (summoner_name, index+1, len(matchlist), h, m, s))
+            print('Player %s; Game %s/%s: t = %02d:%02d:%02.3f' % (summoner_name, index+1, len(matchlist), h, m, s))
         except Exception as e:
             now = time.time()
             delay = (now - start)
             h = int(np.floor(delay / 3600.))
             m = int(np.floor((delay - 3600. * h) / 60.))
             s = (delay - 3600. * h - 60. * m)
-            print('Player %s; Game %s/%s: t = %02d:%02d:%2.3f -- MATCH NOT FOUND' % (summoner_name, index+1, len(matchlist), h, m, s))
+            print('Player %s; Game %s/%s: t = %02d:%02d:%02.3f -- MATCH NOT FOUND' % (summoner_name, index+1, len(matchlist), h, m, s))
     return all_stats
 
 def scrape(queue_id, num_games, account_id, api_key):
@@ -109,7 +109,7 @@ def scrape(queue_id, num_games, account_id, api_key):
             h = int(np.floor(delay / 3600.))
             m = int(np.floor((delay - 3600. * h) / 60.))
             s = (delay - 3600. * h - 60. * m)
-            print('Game %s, %s out of %s, t = %02d:%02d:%2.3f' % (game_id, index+1, len(game_ids), h, m, s))
+            print('Game %s, %s out of %s, t = %02d:%02d:%02.3f' % (game_id, index+1, len(game_ids), h, m, s))
 
             time.sleep(2)
             match = pl.get_match_by_id(game_id, api_key)
@@ -141,10 +141,13 @@ def scrape(queue_id, num_games, account_id, api_key):
         except Exception as e:
             needs_data = True
         if needs_data:
-            ranked_stats = get_all_stats(summoner_name, account_id, api_key, queue_id=queue_id, limit=100)
-            with open('../data/%s/%s.json' % (queue_id, account_id), 'w') as fn:
-                json.dump(ranked_stats, fn)
-            print('Finished saving %s\'s data (account number %s, queue %s)' % (summoner_name, account_id, queue_id))
+            try:
+                ranked_stats = get_all_stats(summoner_name, account_id, api_key, queue_id=queue_id, limit=100)
+                with open('../data/%s/%s.json' % (queue_id, account_id), 'w') as fn:
+                    json.dump(ranked_stats, fn)
+                print('Finished saving %s\'s data (account number %s, queue %s)' % (summoner_name, account_id, queue_id))
+            except Exception as e:
+                print('No data found for %s! (account number %s, queue %s)' % (summoner_name, account_id, queue_id))
         else:
             print('%s\'s data (account number %s, queue %s) is already saved!' % (summoner_name, account_id, queue_id))
     #     ranked_stats_collection = db[str(account_id)]
@@ -153,16 +156,23 @@ def scrape(queue_id, num_games, account_id, api_key):
     #     print('Finished saving %s\'s data (account number %s)' % (summoner_name, account_id))
 
 if __name__ == '__main__':
+    try:
+        api_key = config.api_key
 
-    api_key = config.api_key
+        username = 'delphinus6'
+        # account_id = '234507298'
+        region = 'na1'
+        # match_index = 0
 
-    username = 'delphinus6'
-    # account_id = '234507298'
-    region = 'na1'
-    # match_index = 0
+        summoner_name, summoner_id, account_id = pl.get_summoner_ids(username, api_key, region)
 
-    summoner_name, summoner_id, account_id = pl.get_summoner_ids(username, api_key, region)
+        scrape(420, 120, account_id, api_key)
+        scrape(470, 120, account_id, api_key)
 
-    scrape(420, 120, account_id, api_key)
-
-    scrape(470, 120, account_id, api_key)
+        notification = 'Scraping has finished!'
+        pl.email('bryan6brzycki@gmail.com', '[predictlol] Match History Scraping Notification', notification)
+        print(notification)
+    except Exception as e:
+        error = traceback.format_exc()
+        pl.email('bryan6brzycki@gmail.com', '[predictlol] Match History Scraping Notification', error)
+        print(error)
