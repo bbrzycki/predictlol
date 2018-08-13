@@ -179,10 +179,10 @@ if __name__ == '__main__':
         error += 'API key has likely expired!'
         # pl.email('bryan6brzycki@gmail.com', '[predictlol] Match History Scraping Notification', error)
         print(error)
+    else:
+        scrape(420, 120, account_id, api_key)
+        scrape(470, 120, account_id, api_key)
 
-    scrape(420, 120, account_id, api_key)
-    scrape(470, 120, account_id, api_key)
-
-    notification = 'Scraping has finished!'
-    pl.email('bryan6brzycki@gmail.com', '[predictlol] Match History Scraping Notification', notification)
-    print(notification)
+        notification = 'Scraping has finished!'
+        pl.email('bryan6brzycki@gmail.com', '[predictlol] Match History Scraping Notification', notification)
+        print(notification)
