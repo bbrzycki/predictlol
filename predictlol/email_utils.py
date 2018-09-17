@@ -2,13 +2,11 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import sys, os, glob
-sys.path.append("../config")
-import config
 
-def email(to, subject, text):#, attach):
+def email(to, user, pwd, subject, text):#, attach):
    msg = MIMEMultipart()
 
-   msg['From'] = config.gmail_user
+   msg['From'] = user
    msg['To'] = to
    msg['Subject'] = subject
 
@@ -25,7 +23,7 @@ def email(to, subject, text):#, attach):
    mailServer.ehlo()
    mailServer.starttls()
    mailServer.ehlo()
-   mailServer.login(config.gmail_user, config.gmail_pwd)
-   mailServer.sendmail(config.gmail_user, to, msg.as_string())
+   mailServer.login(user, pwd)
+   mailServer.sendmail(user, to, msg.as_string())
    # Should be mailServer.quit(), but that crashes...
    mailServer.close()

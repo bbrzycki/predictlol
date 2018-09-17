@@ -1,6 +1,5 @@
 import requests
 from pprint import pprint
-import config
 import numpy as np
 
 def get_summoner_data(summoner_name, api_key, region='na1'):

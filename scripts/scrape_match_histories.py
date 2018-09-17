@@ -161,7 +161,7 @@ def scrape(queue_id, num_games, account_id, api_key):
         notification = 'Script stopped on user %s; user %s out of %s\n' % (summoner_name, index + 1, len(users))
         notification += 'Runtime: %02d:%02d:%06.3f\n\n' % (h, m, s)
         notifictaion += error
-        pl.email('bryan6brzycki@gmail.com', '[predictlol] Match History Scraping Notification', error)
+        pl.email('bryan6brzycki@gmail.com', config.user, config.pwd, '[predictlol] Match History Scraping Notification', error)
         print(error)
 
 if __name__ == '__main__':
@@ -177,12 +177,11 @@ if __name__ == '__main__':
     except Exception as e:
         error = traceback.format_exc()
         error += 'API key has likely expired!'
-        # pl.email('bryan6brzycki@gmail.com', '[predictlol] Match History Scraping Notification', error)
         print(error)
     else:
         scrape(420, 120, account_id, api_key)
         scrape(470, 120, account_id, api_key)
 
         notification = 'Scraping has finished!'
-        pl.email('bryan6brzycki@gmail.com', '[predictlol] Match History Scraping Notification', notification)
+        pl.email('bryan6brzycki@gmail.com', config.user, config.pwd, '[predictlol] Match History Scraping Notification', notification)
         print(notification)
